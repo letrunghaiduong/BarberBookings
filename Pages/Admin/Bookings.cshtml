@@ -1,0 +1,300 @@
+@page
+@model BarberBooking.Pages.Admin.BookingsModel
+@{
+    ViewData["Title"] = "Quản lý lịch đặt";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2><i class="bi bi-calendar3"></i> Quản lý lịch đặt</h2>
+    <div class="btn-group">
+        <a href="/api/admin/bookings/export?format=excel&from=@Model.From&to=@Model.To" class="btn btn-outline-success btn-sm">
+            <i class="bi bi-file-earmark-excel"></i> Excel
+        </a>
+        <a href="/api/admin/bookings/export?format=csv&from=@Model.From&to=@Model.To" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-filetype-csv"></i> CSV
+        </a>
+        <a href="/api/admin/bookings/export?format=pdf&from=@Model.From&to=@Model.To" class="btn btn-outline-danger btn-sm">
+            <i class="bi bi-file-earmark-pdf"></i> PDF
+        </a>
+    </div>
+</div>
+
+<!-- Bộ lọc -->
+<div class="card shadow-sm mb-3">
+    <div class="card-body">
+        <form method="get" class="row g-2 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label small">Từ ngày</label>
+                <input type="date" name="from" class="form-control form-control-sm" value="@Model.From" />
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small">Đến ngày</label>
+                <input type="date" name="to" class="form-control form-control-sm" value="@Model.To" />
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small">Trạng thái</label>
+                <select name="status" class="form-select form-select-sm">
+                    <option value="">Tất cả</option>
+                    <option value="Pending" selected="@(Model.Status == "Pending")">Chờ xác nhận</option>
+                    <option value="Confirmed" selected="@(Model.Status == "Confirmed")">Đã xác nhận</option>
+                    <option value="Cancelled" selected="@(Model.Status == "Cancelled")">Đã huỷ</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-dark btn-sm w-100">
+                    <i class="bi bi-funnel"></i> Lọc
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Calendar view -->
+<div id="calendar-container" class="card shadow-sm mb-4 p-3">
+    <div id="calendar"></div>
+</div>
+
+<!-- Bảng danh sách -->
+<div class="card shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead class="table-dark">
+                <tr>
+                    <th>ID</th><th>Khách hàng</th><th>Dịch vụ</th>
+                    <th>Thời gian</th><th>Tổng tiền</th><th>Trạng thái</th><th>Thao tác</th>
+                </tr>
+            </thead>
+            <tbody id="booking-tbody">
+                @foreach (var b in Model.Bookings)
+                {
+                    var total = b.BookingServices.Sum(bs => bs.PriceSnapshot);
+                    var services = string.Join(", ", b.BookingServices.Select(bs => bs.Service?.Name ?? ""));
+                    <tr>
+                        <td>#@b.Id</td>
+                        <td>
+                            <div class="fw-bold">@b.CustomerName</div>
+                            <small class="text-muted">@b.CustomerPhone · @b.CustomerEmail</small>
+                        </td>
+                        <td><small>@services</small></td>
+                        <td>@b.AppointmentTime.ToString("dd/MM/yyyy HH:mm")</td>
+                        <td class="text-danger fw-bold">@total.ToString("N0") đ</td>
+                        <td>
+                            @{
+                                var badgeClass = b.Status switch
+                                {
+                                    BookingStatus.Confirmed => "bg-success",
+                                    BookingStatus.Cancelled => "bg-danger",
+                                    _ => "bg-warning text-dark"
+                                };
+                                var statusText = b.Status switch
+                                {
+                                    BookingStatus.Confirmed => "Đã xác nhận",
+                                    BookingStatus.Cancelled => "Đã huỷ",
+                                    _ => "Chờ xác nhận"
+                                };
+                            }
+                            <span class="badge @badgeClass">@statusText</span>
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                @if (b.Status == BookingStatus.Pending)
+                                {
+                                    <form method="post" asp-page-handler="Confirm">
+                                        <input type="hidden" name="id" value="@b.Id" />
+                                        <button type="submit" class="btn btn-outline-success btn-sm me-1" title="Xác nhận">
+                                            <i class="bi bi-check-lg"></i>
+                                        </button>
+                                    </form>
+                                }
+                                @if (b.Status != BookingStatus.Cancelled)
+                                {
+                                    <form method="post" asp-page-handler="Cancel" onsubmit="return confirm('Huỷ lịch này?')">
+                                        <input type="hidden" name="id" value="@b.Id" />
+                                        <button type="submit" class="btn btn-outline-danger btn-sm" title="Huỷ">
+                                            <i class="bi bi-x-lg"></i>
+                                        </button>
+                                    </form>
+                                }
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <!-- Phân trang -->
+    @if (Model.TotalPages > 1)
+    {
+        <div class="card-footer d-flex justify-content-between align-items-center">
+            <small class="text-muted">Tổng @Model.TotalCount lịch</small>
+            <nav>
+                <ul class="pagination pagination-sm mb-0" id="pagination-list">
+                    @for (int i = 1; i <= Model.TotalPages; i++)
+                    {
+                        <li class="page-item @(i == Model.Page ? "active" : "")">
+                            <a href="#" class="page-link pagination-link" data-page="@i">@i</a>
+                        </li>
+                    }
+                </ul>
+            </nav>
+        </div>
+    }
+</div>
+
+@section HeadScripts {
+<link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css' rel='stylesheet' />
+}
+
+@section Scripts {
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+
+            // ================== CALENDAR ==================
+            var calendarEl = document.getElementById('calendar');
+
+            var events = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+        Model.CalendarBookings.Select(b => new
+        {
+
+            title = b.CustomerName + " - " + string.Join(", ", b.BookingServices.Select(bs => bs.Service?.Name ?? "")),
+
+            start = b.AppointmentTime.ToString("yyyy-MM-ddTHH:mm:ss"),
+
+            end = b.AppointmentTime.AddMinutes(
+        b.BookingServices.Sum(bs => bs.Service.DurationMinutes)
+        ),
+
+            color = b.Status == BookingStatus.Confirmed ? "#198754" :
+        b.Status == BookingStatus.Cancelled ? "#dc3545" : "#ffc107",
+
+            textColor = b.Status == BookingStatus.Pending ? "#000" : "#fff"
+        })
+        ));
+
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'timeGridWeek',
+                locale: 'vi',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'timeGridWeek,timeGridDay'
+                },
+                slotMinTime: "00:00:00",
+                slotMaxTime: "24:00:00",
+                allDaySlot: false,
+                slotDuration: "00:30:00",
+                height: 600,
+                events: events,
+            });
+
+            calendar.render();
+
+            // ================== PAGINATION CLICK ==================
+            document.addEventListener('click', function (e) {
+                if (e.target.classList.contains('pagination-link')) {
+                    e.preventDefault();
+
+                    const page = e.target.dataset.page;
+
+                    const from = document.querySelector('input[name="from"]').value;
+                    const to = document.querySelector('input[name="to"]').value;
+                    const status = document.querySelector('select[name="status"]').value;
+                    console.log("PAGE:", page);
+                    loadTable(page, from, to, status);
+                }
+            });
+
+        });
+
+        // ================== AJAX LOAD TABLE ==================
+        function loadTable(page, from, to, status) {
+            fetch(`/Admin/Bookings?handler=Table&pageIndex=${page}&from=${from}&to=${to}&status=${status}`)
+                .then(res => res.json())
+                .then(data => {
+                    renderTable(data.bookings);
+                    renderPagination(data.page, data.totalPages);
+                });
+        }
+
+        // ================== RENDER TABLE ==================
+        function getActionButtons(b) {
+            let html = '<div class="btn-group btn-group-sm">';
+
+            // Pending → có nút Confirm
+            if (b.status === "Pending") {
+                html += `
+                    <button class="btn btn-outline-success btn-sm me-1 btn-confirm" data-id="${b.id}" title="Xác nhận">
+                        <i class="bi bi-check-lg"></i>
+                    </button>
+                `;
+            }
+
+            // Không phải Cancelled → có nút Cancel
+            if (b.status !== "Cancelled") {
+                html += `
+                    <button class="btn btn-outline-danger btn-sm btn-cancel" data-id="${b.id}" title="Huỷ">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                `;
+            }
+
+            html += '</div>';
+
+            return html;
+        }
+        function renderTable(bookings) {
+            const tbody = document.getElementById('booking-tbody');
+            tbody.innerHTML = '';
+
+            bookings.forEach(b => {
+                const statusBadge = getStatusBadge(b.status);
+
+                const actionButtons = getActionButtons(b);
+
+                const row = `
+                    <tr>
+                        <td>#${b.id}</td>
+                        <td>
+                            <div class="fw-bold">${b.customerName}</div>
+                            <small class="text-muted">${b.customerPhone} · ${b.customerEmail}</small>
+                        </td>
+                        <td><small>${b.services}</small></td>
+                        <td>${b.appointmentTime}</td>
+                        <td class="text-danger fw-bold">${Number(b.total).toLocaleString()} đ</td>
+                        <td>${statusBadge}</td>
+                        <td>${actionButtons}</td>
+                    </tr>
+                `;
+
+                tbody.innerHTML += row;
+            });
+        }
+
+        // ================== RENDER PAGINATION ==================
+        function renderPagination(currentPage, totalPages) {
+            const pagination = document.getElementById('pagination-list');
+            pagination.innerHTML = '';
+
+            for (let i = 1; i <= totalPages; i++) {
+                pagination.innerHTML += `
+                    <li class="page-item ${i === currentPage ? 'active' : ''}">
+                        <a href="#" class="page-link pagination-link" data-page="${i}">${i}</a>
+                    </li>
+                `;
+            }
+        }
+
+        // ================== STATUS BADGE ==================
+        function getStatusBadge(status) {
+            if (status === "Confirmed")
+                return '<span class="badge bg-success">Đã xác nhận</span>';
+
+            if (status === "Cancelled")
+                return '<span class="badge bg-danger">Đã huỷ</span>';
+
+            return '<span class="badge bg-warning text-dark">Chờ xác nhận</span>';
+        }
+    </script>
+}

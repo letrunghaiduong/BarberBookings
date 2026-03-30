@@ -1,0 +1,148 @@
+@page
+@model BarberBooking.Pages.Admin.ServicesModel
+@{
+    ViewData["Title"] = "Quản lý dịch vụ";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2><i class="bi bi-scissors"></i> Quản lý dịch vụ</h2>
+    <button class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#addModal">
+        <i class="bi bi-plus-circle"></i> Thêm dịch vụ
+    </button>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show">@TempData["Success"]<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+}
+
+<div class="card shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead class="table-dark">
+                <tr>
+                    <th>Tên dịch vụ</th>
+                    <th>Mô tả</th>
+                    <th>Thời gian</th>
+                    <th>Giá</th>
+                    <th>Trạng thái</th>
+                    <th>Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var s in Model.Services)
+                {
+                    <tr>
+                        <td class="fw-bold">@s.Name</td>
+                        <td class="text-muted small">@s.Description</td>
+                        <td>@s.DurationMinutes phút</td>
+                        <td class="text-danger fw-bold">@s.Price.ToString("N0") VNĐ</td>
+                        <td>
+                            @if (s.IsApproved)
+                            {
+                                <span class="badge bg-success">Đã duyệt</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-warning text-dark">Chờ duyệt</span>
+                            }
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <form method="post" asp-page-handler="ToggleApproval">
+                                    <input type="hidden" name="id" value="@s.Id" />
+                                    <button type="submit" class="btn btn-outline-@(s.IsApproved ? "warning" : "success") btn-sm me-1"
+                                            title="@(s.IsApproved ? "Huỷ duyệt" : "Duyệt")">
+                                        <i class="bi bi-@(s.IsApproved ? "x-circle" : "check-circle")"></i>
+                                    </button>
+                                </form>
+                                <button class="btn btn-outline-primary btn-sm me-1" data-bs-toggle="modal"
+                                        data-bs-target="#editModal"
+                                        data-id="@s.Id" data-name="@s.Name"
+                                        data-desc="@s.Description" data-price="@s.Price"
+                                        data-duration="@s.DurationMinutes" data-image="@s.ImageUrl">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <form method="post" asp-page-handler="Delete" onsubmit="return confirm('Xoá dịch vụ này?')">
+                                    <input type="hidden" name="id" value="@s.Id" />
+                                    <button type="submit" class="btn btn-outline-danger btn-sm">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal Thêm -->
+<div class="modal fade" id="addModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-dark text-white">
+                <h5 class="modal-title">Thêm dịch vụ mới</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" asp-page-handler="Add">
+                <div class="modal-body">
+                    <div class="mb-3"><label class="form-label">Tên dịch vụ *</label><input name="name" class="form-control" required /></div>
+                    <div class="mb-3"><label class="form-label">Mô tả</label><textarea name="description" class="form-control" rows="2"></textarea></div>
+                    <div class="row">
+                        <div class="col-6 mb-3"><label class="form-label">Giá (VNĐ) *</label><input name="price" type="number" class="form-control" required min="0" /></div>
+                        <div class="col-6 mb-3"><label class="form-label">Thời gian (phút) *</label><input name="durationMinutes" type="number" class="form-control" required min="1" /></div>
+                    </div>
+                    <div class="mb-3"><label class="form-label">URL hình ảnh</label><input name="imageUrl" class="form-control" /></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Huỷ</button>
+                    <button type="submit" class="btn btn-dark">Lưu</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Sửa -->
+<div class="modal fade" id="editModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">Sửa dịch vụ</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" asp-page-handler="Edit">
+                <div class="modal-body">
+                    <input type="hidden" name="id" id="editId" />
+                    <div class="mb-3"><label class="form-label">Tên dịch vụ *</label><input name="name" id="editName" class="form-control" required /></div>
+                    <div class="mb-3"><label class="form-label">Mô tả</label><textarea name="description" id="editDesc" class="form-control" rows="2"></textarea></div>
+                    <div class="row">
+                        <div class="col-6 mb-3"><label class="form-label">Giá (VNĐ) *</label><input name="price" id="editPrice" type="number" class="form-control" required /></div>
+                        <div class="col-6 mb-3"><label class="form-label">Thời gian (phút) *</label><input name="durationMinutes" id="editDuration" type="number" class="form-control" required /></div>
+                    </div>
+                    <div class="mb-3"><label class="form-label">URL hình ảnh</label><input name="imageUrl" id="editImage" class="form-control" /></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Huỷ</button>
+                    <button type="submit" class="btn btn-primary">Cập nhật</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+document.getElementById('editModal').addEventListener('show.bs.modal', function (e) {
+    const btn = e.relatedTarget;
+    document.getElementById('editId').value = btn.dataset.id;
+    document.getElementById('editName').value = btn.dataset.name;
+    document.getElementById('editDesc').value = btn.dataset.desc;
+    document.getElementById('editPrice').value = btn.dataset.price;
+    document.getElementById('editDuration').value = btn.dataset.duration;
+    document.getElementById('editImage').value = btn.dataset.image || '';
+});
+</script>
+}

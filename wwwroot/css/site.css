@@ -1,0 +1,61 @@
+/* Barber Shop - Custom Styles */
+
+body {
+    background-color: #f8f9fa;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+.navbar-brand {
+    font-size: 1.3rem;
+    letter-spacing: 1px;
+}
+
+/* Card hover effect */
+.card {
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 .5rem 1rem rgba(0,0,0,.12) !important;
+}
+
+/* Service selection */
+.service-item {
+    cursor: pointer;
+    transition: background-color 0.15s;
+}
+.service-item:hover {
+    background-color: #f0f0f0;
+}
+.service-item:has(.form-check-input:checked) {
+    background-color: #e8f5e9;
+    border-color: #28a745 !important;
+}
+
+/* Table */
+.table th {
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Pagination */
+.page-link {
+    color: #212529;
+}
+.page-item.active .page-link {
+    background-color: #212529;
+    border-color: #212529;
+}
+
+/* Badge */
+.badge {
+    font-weight: 500;
+    font-size: 0.78rem;
+}
+
+/* Calendar */
+#calendar {
+    font-size: 0.85rem;
+}

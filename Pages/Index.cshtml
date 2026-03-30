@@ -1,0 +1,35 @@
+@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Trang chủ";
+}
+
+<div class="text-center py-5">
+    <h1 class="display-4 fw-bold">✂️ Barber Shop</h1>
+    <p class="lead text-muted">Chuyên nghiệp - Tận tâm - Phong cách</p>
+    <a href="/Booking" class="btn btn-dark btn-lg mt-3">
+        <i class="bi bi-calendar-plus"></i> Đặt lịch ngay
+    </a>
+</div>
+
+<div class="row mt-4 g-4">
+    @foreach (var s in Model.Services)
+    {
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm">
+                @if (!string.IsNullOrEmpty(s.ImageUrl))
+                {
+                    <img src="@s.ImageUrl" class="card-img-top" style="height:200px;object-fit:cover" alt="@s.Name" />
+                }
+                <div class="card-body">
+                    <h5 class="card-title">@s.Name</h5>
+                    <p class="card-text text-muted">@s.Description</p>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="text-danger fw-bold">@s.Price.ToString("N0") VNĐ</span>
+                        <span class="badge bg-secondary"><i class="bi bi-clock"></i> @s.DurationMinutes phút</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>

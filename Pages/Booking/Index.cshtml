@@ -1,0 +1,138 @@
+@page
+@model BarberBooking.Pages.Booking.BookingIndexModel
+@{
+    ViewData["Title"] = "Đặt lịch cắt tóc";
+}
+
+<h2><i class="bi bi-calendar-plus"></i> Đặt lịch cắt tóc</h2>
+<hr />
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">@TempData["Success"]</div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">@TempData["Error"]</div>
+}
+
+
+<form method="post">
+    
+    <div class="row g-4">
+        <!-- Thông tin khách hàng -->
+        <div class="col-md-5">
+            <div class="card shadow-sm">
+                <div class="card-header bg-dark text-white fw-bold">
+                    <i class="bi bi-person"></i> Thông tin khách hàng
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">Họ tên <span class="text-danger">*</span></label>
+                        <input asp-for="Input.CustomerName" class="form-control" placeholder="Nguyễn Văn A" />
+                        <span asp-validation-for="Input.CustomerName" class="text-danger small"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Số điện thoại <span class="text-danger">*</span></label>
+                        <input asp-for="Input.CustomerPhone" class="form-control" placeholder="0901234567" />
+                        <span asp-validation-for="Input.CustomerPhone" class="text-danger small"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email <span class="text-danger">*</span></label>
+                        <input asp-for="Input.CustomerEmail" class="form-control" placeholder="example@gmail.com" />
+                        <span asp-validation-for="Input.CustomerEmail" class="text-danger small"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Ngày & giờ hẹn <span class="text-danger">*</span></label>
+                        <input asp-for="Input.AppointmentTime" type="datetime-local" class="form-control"
+                               min="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm")" />
+                        <span asp-validation-for="Input.AppointmentTime" class="text-danger small"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Ghi chú</label>
+                        <textarea asp-for="Input.Notes" class="form-control" rows="2" placeholder="Yêu cầu đặc biệt..."></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chọn dịch vụ -->
+        <div class="col-md-7">
+            <div class="card shadow-sm">
+                <div class="card-header bg-dark text-white fw-bold">
+                    <i class="bi bi-scissors"></i> Chọn dịch vụ (có thể chọn nhiều)
+                </div>
+                <div class="card-body">
+                    @if (!Model.Services.Any())
+                    {
+                        <p class="text-muted">Chưa có dịch vụ nào.</p>
+                    }
+                    @foreach (var s in Model.Services)
+                    {
+                        <div class="form-check border rounded p-3 mb-2 service-item" data-price="@s.Price" data-duration="@s.DurationMinutes">
+                            <input class="form-check-input service-checkbox" type="checkbox"
+                                   name="Input.SelectedServiceIds" value="@s.Id" id="svc_@s.Id" />
+                            <label class="form-check-label w-100" for="svc_@s.Id" style="cursor:pointer">
+                                <div class="d-flex justify-content-between">
+                                    <span class="fw-bold">@s.Name</span>
+                                    <span class="text-danger fw-bold">@s.Price.ToString("N0") VNĐ</span>
+                                </div>
+                                <small class="text-muted">@s.Description · @s.DurationMinutes phút</small>
+                            </label>
+                        </div>
+                    }
+                    <span asp-validation-for="Input.SelectedServiceIds" class="text-danger small"></span>
+
+                    <!-- Tổng kết -->
+                    <div class="alert alert-light border mt-3 d-none" id="summary">
+                        <div class="d-flex justify-content-between">
+                            <span>Tổng thời gian:</span>
+                            <strong id="totalDuration">0 phút</strong>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>Tổng tiền:</span>
+                            <strong class="text-danger" id="totalPrice">0 VNĐ</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-dark btn-lg w-100 mt-3">
+                <i class="bi bi-check-circle"></i> Xác nhận đặt lịch
+            </button>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+<script>
+    const checkboxes = document.querySelectorAll('.service-checkbox');
+    const summary = document.getElementById('summary');
+
+    checkboxes.forEach(cb => {
+        cb.addEventListener('change', updateSummary);
+        cb.closest('.service-item').addEventListener('click', function(e) {
+            if (e.target !== cb) cb.checked = !cb.checked;
+            updateSummary();
+        });
+    });
+
+    function updateSummary() {
+        let totalPrice = 0, totalDuration = 0;
+        checkboxes.forEach(cb => {
+            if (cb.checked) {
+                const item = cb.closest('.service-item');
+                totalPrice += parseFloat(item.dataset.price);
+                totalDuration += parseInt(item.dataset.duration);
+            }
+        });
+        if (totalPrice > 0) {
+            summary.classList.remove('d-none');
+            document.getElementById('totalPrice').textContent = totalPrice.toLocaleString('vi-VN') + ' VNĐ';
+            document.getElementById('totalDuration').textContent = totalDuration + ' phút';
+        } else {
+            summary.classList.add('d-none');
+        }
+    }
+</script>
+}

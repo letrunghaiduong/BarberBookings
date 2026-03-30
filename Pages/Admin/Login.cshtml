@@ -1,0 +1,47 @@
+@page
+@model BarberBooking.Pages.Admin.LoginModel
+@{
+    ViewData["Title"] = "Đăng nhập Admin";
+    Layout = "_Layout";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-4">
+        <div class="card shadow mt-5">
+            <div class="card-header bg-dark text-white text-center py-3">
+                <h4 class="mb-0">🔐 Admin Login</h4>
+            </div>
+            <div class="card-body p-4">
+                @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+                {
+                    <div class="alert alert-danger">
+                        <i class="bi bi-exclamation-triangle"></i> @Model.ErrorMessage
+                    </div>
+                }
+                <form method="post">
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input asp-for="Email" type="email" class="form-control"
+                               placeholder="admin@barber.com" autofocus />
+                        <span asp-validation-for="Email" class="text-danger small"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Mật khẩu</label>
+                        <input asp-for="Password" type="password" class="form-control" />
+                        <span asp-validation-for="Password" class="text-danger small"></span>
+                    </div>
+                    <div class="mb-3 form-check">
+                        <input asp-for="RememberMe" class="form-check-input" type="checkbox" />
+                        <label asp-for="RememberMe" class="form-check-label">Ghi nhớ đăng nhập</label>
+                    </div>
+                    <button type="submit" class="btn btn-dark w-100">
+                        <i class="bi bi-box-arrow-in-right"></i> Đăng nhập
+                    </button>
+                </form>
+            </div>
+            <div class="card-footer text-center text-muted small">
+                Chỉ dành cho quản trị viên
+            </div>
+        </div>
+    </div>
+</div>
