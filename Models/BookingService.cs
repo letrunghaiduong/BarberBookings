@@ -10,6 +10,5 @@ public class BookingService
     public int ServiceId { get; set; }
     public Service Service { get; set; } = null!;
 
-    /// <summary>Lưu giá tại thời điểm đặt, tránh bị ảnh hưởng khi admin sửa giá sau</summary>
     public decimal PriceSnapshot { get; set; }
 }

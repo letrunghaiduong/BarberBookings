@@ -55,7 +55,7 @@ public class BookingsModel : PageModel
             .ToListAsync();
 
         Bookings = await query
-            .OrderByDescending(b => b.AppointmentTime)
+            .OrderBy(b => b.Id)
             .Skip((Page - 1) * PageSize)
             .Take(PageSize)
             .ToListAsync();
@@ -82,7 +82,7 @@ public class BookingsModel : PageModel
         var totalPages = (int)Math.Ceiling(totalCount / (double)PageSize);
 
         var bookings = await query
-            .OrderByDescending(b => b.AppointmentTime)
+            .OrderBy(b => b.Id)
             .Skip((pageIndex - 1) * PageSize)
             .Take(PageSize)
             .Select(b => new

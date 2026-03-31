@@ -76,7 +76,6 @@ public class EmailService : IEmailService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Lỗi khi gửi email tới {Email}", toEmail);
-            // Không throw để không làm fail luồng chính
         }
     }
 }

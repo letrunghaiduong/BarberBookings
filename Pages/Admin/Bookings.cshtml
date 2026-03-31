@@ -222,7 +222,6 @@
         function getActionButtons(b) {
             let html = '<div class="btn-group btn-group-sm">';
 
-            // Pending → có nút Confirm
             if (b.status === "Pending") {
                 html += `
                     <button class="btn btn-outline-success btn-sm me-1 btn-confirm" data-id="${b.id}" title="Xác nhận">
@@ -231,7 +230,6 @@
                 `;
             }
 
-            // Không phải Cancelled → có nút Cancel
             if (b.status !== "Cancelled") {
                 html += `
                     <button class="btn btn-outline-danger btn-sm btn-cancel" data-id="${b.id}" title="Huỷ">
