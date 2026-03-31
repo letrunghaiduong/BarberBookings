@@ -7,13 +7,13 @@
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h2><i class="bi bi-calendar3"></i> Quản lý lịch đặt</h2>
     <div class="btn-group">
-        <a href="/api/admin/bookings/export?format=excel&from=@Model.From&to=@Model.To" class="btn btn-outline-success btn-sm">
+        <a href="/api/admin/bookings/export?format=excel&from=@Model.From&to=@Model.To&status=@Model.Status" class="btn btn-outline-success btn-sm">
             <i class="bi bi-file-earmark-excel"></i> Excel
         </a>
-        <a href="/api/admin/bookings/export?format=csv&from=@Model.From&to=@Model.To" class="btn btn-outline-secondary btn-sm">
+        <a href="/api/admin/bookings/export?format=csv&from=@Model.From&to=@Model.To&status=@Model.Status" class="btn btn-outline-secondary btn-sm">
             <i class="bi bi-filetype-csv"></i> CSV
         </a>
-        <a href="/api/admin/bookings/export?format=pdf&from=@Model.From&to=@Model.To" class="btn btn-outline-danger btn-sm">
+        <a href="/api/admin/bookings/export?format=pdf&from=@Model.From&to=@Model.To&status=@Model.Status" class="btn btn-outline-danger btn-sm">
             <i class="bi bi-file-earmark-pdf"></i> PDF
         </a>
     </div>

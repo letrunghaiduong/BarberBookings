@@ -120,14 +120,6 @@ public class ExportService : IExportService
                         table.Cell().Padding(4).Text(b.Status.ToString());
                     }
                 });
-
-                page.Footer().AlignRight().Text(x =>
-                {
-                    x.Span("Trang ");
-                    x.CurrentPageNumber();
-                    x.Span(" / ");
-                    x.TotalPages();
-                });
             });
         }).GeneratePdf();
     }

@@ -145,12 +145,13 @@ public class ApiController : ControllerBase
     // GET /api/admin/bookings/export?format=excel|csv|pdf
     [HttpGet("/api/admin/bookings/export")]
     [Authorize]
-    public async Task<IActionResult> ExportBookings([FromQuery] string format = "excel", [FromQuery] string? from = null, [FromQuery] string? to = null)
+    public async Task<IActionResult> ExportBookings([FromQuery] string format = "excel", [FromQuery] string? from = null, [FromQuery] string? to = null, [FromQuery] string? status = null)
     {
         var query = _db.Bookings.Include(b => b.BookingServices).ThenInclude(bs => bs.Service).AsQueryable();
         if (DateTime.TryParse(from, out var fromDate)) query = query.Where(b => b.AppointmentTime >= fromDate);
         if (DateTime.TryParse(to, out var toDate)) query = query.Where(b => b.AppointmentTime <= toDate.AddDays(1));
-        var bookings = await query.OrderByDescending(b => b.AppointmentTime).ToListAsync();
+        if (!string.IsNullOrEmpty(status) && Enum.TryParse<BookingStatus>(status, out var s)) query = query.Where(b => b.Status == s);
+        var bookings = await query.OrderBy(b => b.Id).ToListAsync();
 
         return format.ToLower() switch
         {
